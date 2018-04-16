@@ -28,6 +28,43 @@
  * @licence Simplified BSD License
  */
 
+const createIframe = (proc, win, src, cb) => {
+  const iframe = document.createElement('iframe');
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.setAttribute('border', '0');
+
+  iframe.addEventListener('load', () => {
+    const ref = iframe.contentWindow;
+
+    // This will proxy the window focus events to iframe
+    win.on('focus', () => ref.focus());
+    win.on('blur', () => ref.blur());
+
+    const sendMessage = msg => ref.postMessage(msg, window.location.href);
+
+    // After connection is established, this handler will process
+    // all events coming from iframe.
+    proc.on('message', (args) => {
+      console.warn('[Application', 'Iframe sent', args);
+
+      if (args[0] === 'Yo!') {
+        sendMessage({
+          method: 'foo',
+          args: ['MyIframeApplication says hello']
+        });
+      }
+    });
+
+    cb(sendMessage);
+  });
+
+  // Finally set the source and attach
+  iframe.src = src;
+
+  return iframe;
+};
+
 // Creates the internal callback function when OS.js launches an application
 // Note the first argument is the 'name' taken from your metadata.json file
 OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options, metadata) => {
@@ -48,45 +85,21 @@ OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options,
   })
     .on('destroy', () => proc.destroy())
     .render(($content, win) => {
-      // Creates a new iframe dom element
-      const iframe = document.createElement('iframe');
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.setAttribute('border', '0');
-      iframe.addEventListener('load', () => {
-        const ref = iframe.contentWindow;
+      // Get path to iframe content
+      const src = proc.resource('/data/index.html');
 
-        // This will proxy the window focus events to iframe
-        win.on('focus', () => ref.focus());
-        win.on('blur', () => ref.blur());
-
-        const sendMessage = msg => ref.postMessage(msg, window.location.href);
-
-        // After connection is established, this handler will process
-        // all events coming from iframe.
-        proc.on('message', (args) => {
-          console.warn('[Application', 'Iframe sent', args);
-
-          if (args[0] === 'Yo!') {
-            sendMessage({
-              method: 'foo',
-              args: ['MyIframeApplication says hello']
-            });
-          }
-        });
-
+      // Create DOM element
+      const iframe = createIframe(proc, win, src, send => {
         // Send the process ID to our iframe to establish communication
-        sendMessage({
+        send({
           method: 'init',
           args: [proc.pid]
         });
       });
 
-      // Finally set the source and attach
-      iframe.src = proc.resource('/data/index.html');
-
-      $content.appendChild(iframe);
-    });
+    // Attach
+    $content.appendChild(iframe);
+  });
 
   return proc;
 });
