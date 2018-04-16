@@ -18,12 +18,12 @@
 
   /**
    * OS.js expects you to send a message with the format:
-   * {pid, data}
+   * {pid, args}
    */
   function postMessage() {
     top.postMessage({
       pid: processId,
-      data: Array.prototype.slice.call(arguments)
+      args: Array.prototype.slice.call(arguments)
     }, '*');
   }
 
@@ -42,12 +42,12 @@
 
         output.appendChild(document.createTextNode('OS.js said hello!'));
         console.warn('[Iframe] OS.js sent init method from application', message.args, processId);
-        postMessage('Yo!');
+        postMessage({method: 'yo', args: [1, 2, 3]});
         break;
 
       // After communication is establised, the OS.js process
       // will emit this event.
-      case 'foo':
+      case 'yo':
         var text = message.args[0];
         output.appendChild(document.createTextNode(text));
         break;

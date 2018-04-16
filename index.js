@@ -28,7 +28,7 @@
  * @licence Simplified BSD License
  */
 
-const createIframe = (proc, win, src, cb) => {
+const createIframe = (bus, proc, win, cb) => {
   const iframe = document.createElement('iframe');
   iframe.style.width = '100%';
   iframe.style.height = '100%';
@@ -41,26 +41,18 @@ const createIframe = (proc, win, src, cb) => {
     win.on('focus', () => ref.focus());
     win.on('blur', () => ref.blur());
 
+    // Create message sending wrapper
     const sendMessage = msg => ref.postMessage(msg, window.location.href);
 
     // After connection is established, this handler will process
     // all events coming from iframe.
-    proc.on('message', (args) => {
-      console.warn('[Application', 'Iframe sent', args);
-
-      if (args[0] === 'Yo!') {
-        sendMessage({
-          method: 'foo',
-          args: ['MyIframeApplication says hello']
-        });
-      }
+    proc.on('message', data => {
+      console.warn('[Application', 'Iframe sent', data);
+      bus.emit(data.method, sendMessage, ...data.args);
     });
 
     cb(sendMessage);
   });
-
-  // Finally set the source and attach
-  iframe.src = src;
 
   return iframe;
 };
@@ -85,11 +77,19 @@ OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options,
   })
     .on('destroy', () => proc.destroy())
     .render(($content, win) => {
+      // Create a new bus for our messaging
+      const bus = core.make('osjs/event-handler', 'MyIframeApplicationWindow');
+
       // Get path to iframe content
       const src = proc.resource('/data/index.html');
 
       // Create DOM element
-      const iframe = createIframe(proc, win, src, send => {
+      const iframe = createIframe(bus, proc, win, send => {
+        bus.on('yo', (send, args) => send({
+          method: 'yo',
+          args: ['MyIframeApplication says hello']
+        }));
+
         // Send the process ID to our iframe to establish communication
         send({
           method: 'init',
@@ -97,9 +97,12 @@ OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options,
         });
       });
 
-    // Attach
-    $content.appendChild(iframe);
-  });
+      // Finally set the source and attach
+      iframe.src = src;
+
+      // Attach
+      $content.appendChild(iframe);
+    });
 
   return proc;
 });
