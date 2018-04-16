@@ -1,0 +1,24 @@
+{
+  "name": "@osjs/example-iframe-package",
+  "version": "1.0.0",
+  "description": "OS.js v3 Example IFrame Package",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/os-js/osjs-example-iframe-package.git"
+  },
+  "keywords": [
+    "osjs"
+  ],
+  "dependencies": {
+    "hyperapp": "^1.1.2"
+  },
+  "author": "Anders Evenrud <andersevenrud@gmail.com>",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/os-js/osjs-example-iframe-package/issues"
+  },
+  "homepage": "https://github.com/os-js/osjs-example-iframe-package#readme"
+}

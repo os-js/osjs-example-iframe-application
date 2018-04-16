@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Only resources and scaling definitions will be relevant here -->
+  </head>
+  <body>
+    <!-- Initial content -->
+    <h1>Hello World</h1>
+
+    <!-- Our dynamic output -->
+    <div id="output"></div>
+
+    <!-- Add scripts lastly -->
+    <script>
+(function() {
+  // Cache our process id from initial handshake
+  var processId;
+
+  /**
+   * OS.js expects you to send a message with the format:
+   * {pid, data}
+   */
+  function postMessage() {
+    top.postMessage({
+      pid: processId,
+      data: Array.prototype.slice.call(arguments)
+    }, '*');
+  }
+
+  /**
+   * Handle messages
+   */
+  window.addEventListener('message', function(ev) {
+    var message = ev.data || {};
+    var output = document.getElementById('output');
+
+    switch (message.method) {
+      // When we get handshake from the OS.js process,
+      // answer with something
+      case 'init':
+        processId = message.args[0];
+
+        output.appendChild(document.createTextNode('OS.js said hello!'));
+        console.warn('[Iframe] OS.js sent init method from application', message.args, processId);
+        postMessage('Yo!');
+        break;
+
+      // After communication is establised, the OS.js process
+      // will emit this event.
+      case 'foo':
+        var text = message.args[0];
+        output.appendChild(document.createTextNode(text));
+        break;
+
+      // Anything else will just be logged to console
+      default:
+        console.warn('[Iframe] OS.js sent', message);
+        break;
+    }
+  });
+})();
+    </script>
+  </body>
+</html>
