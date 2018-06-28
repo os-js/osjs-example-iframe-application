@@ -12,5 +12,3 @@
 # OS.js v3 Example Iframe Package
 
 This is the Example Iframe Package for OS.js v3 that includes bi-directional communication.
-
-**PLEASE NOTE THAT THIS IS AN ALPHA PRE-RELEASE AND SUBJECT TO CHANGE WITHOUT NOTICE**
