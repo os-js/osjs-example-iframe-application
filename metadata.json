@@ -8,6 +8,6 @@
     "en_EN": "My Iframe Application"
   },
   "files": [
-    "index.js"
+    "main.js"
   ]
 }
