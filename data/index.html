@@ -6,59 +6,33 @@
   <body>
     <!-- Initial content -->
     <h1>Hello World</h1>
-
-    <!-- Our dynamic output -->
-    <div id="output"></div>
+    <div>
+      <button id="create-dialog">Create Dialog</button>
+    </div>
 
     <!-- Add scripts lastly -->
+    <script src="https://cdn.jsdelivr.net/npm/@osjs/iframe/dist/main.js"></script>
     <script>
-(function() {
-  // Cache our process id from initial handshake
-  var processId;
+const {IFrame} = osjsIframe;
+const inst = new IFrame();
 
-  /**
-   * OS.js expects you to send a message with the format:
-   * {pid, args}
-   */
-  function postMessage() {
-    top.postMessage({
-      pid: processId,
-      args: Array.prototype.slice.call(arguments)
-    }, '*');
+inst.on('osjs:init', ({type}) => {
+  inst.send({type: 'ping'});
+});
+
+inst.on('message', msg => {
+  console.warn('[iframe] message', msg);
+
+  if (msg.type === 'pong') {
+    console.info('Application said hello');
   }
+});
 
-  /**
-   * Handle messages
-   */
-  window.addEventListener('message', function(ev) {
-    var message = ev.data || {};
-    var output = document.getElementById('output');
-
-    switch (message.method) {
-      // When we get handshake from the OS.js process,
-      // answer with something
-      case 'init':
-        processId = message.args[0];
-
-        output.appendChild(document.createTextNode('OS.js said hello!'));
-        console.warn('[Iframe] OS.js sent init method from application', message.args, processId);
-        postMessage({method: 'yo', args: [1, 2, 3]});
-        break;
-
-      // After communication is establised, the OS.js process
-      // will emit this event.
-      case 'yo':
-        var text = message.args[0];
-        output.appendChild(document.createTextNode(text));
-        break;
-
-      // Anything else will just be logged to console
-      default:
-        console.warn('[Iframe] OS.js sent', message);
-        break;
-    }
+document.getElementById('create-dialog').addEventListener('click', () => {
+  inst.send({type: 'create-dialog'}, ({btn, value}) => {
+    console.info('Dialog response was', {btn, value});
   });
-})();
+});
     </script>
   </body>
 </html>

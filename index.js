@@ -27,82 +27,46 @@
  * @author  Anders Evenrud <andersevenrud@gmail.com>
  * @licence Simplified BSD License
  */
+import {name as applicationName} from './metadata.json';
 
-const createIframe = (bus, proc, win, cb) => {
-  const iframe = document.createElement('iframe');
-  iframe.style.width = '100%';
-  iframe.style.height = '100%';
-  iframe.setAttribute('border', '0');
-
-  iframe.addEventListener('load', () => {
-    const ref = iframe.contentWindow;
-
-    // This will proxy the window focus events to iframe
-    win.on('focus', () => ref.focus());
-    win.on('blur', () => ref.blur());
-
-    // Create message sending wrapper
-    const sendMessage = msg => ref.postMessage(msg, window.location.href);
-
-    // After connection is established, this handler will process
-    // all events coming from iframe.
-    proc.on('message', data => {
-      console.warn('[Application', 'Iframe sent', data);
-      bus.emit(data.method, sendMessage, ...data.args);
-    });
-
-    cb(sendMessage);
-  });
-
-  return iframe;
-};
-
-// Creates the internal callback function when OS.js launches an application
-// Note the first argument is the 'name' taken from your metadata.json file
-OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options, metadata) => {
-
+OSjs.make('osjs/packages').register(applicationName, (core, args, options, metadata) => {
   // Create a new Application instance
-  const proc = core.make('osjs/application', {
-    args,
-    options,
-    metadata
+  const proc = core.make('osjs/application', {args, options, metadata});
+
+  // Create a new IFrame Window
+  const win = proc.createIframeWindow();
+
+  // Register our iframe events
+  win.on('iframe:init', context => {
+    console.log('iframe inited');
   });
 
-  // Create  a new Window instance
-  proc.createWindow({
-    id: 'MyIframeApplicationWindow',
-    title: metadata.title.en_EN,
-    dimension: {width: 400, height: 400},
-    position: {left: 700, top: 200}
-  })
-    .on('destroy', () => proc.destroy())
-    .render(($content, win) => {
-      // Create a new bus for our messaging
-      const bus = core.make('osjs/event-handler', 'MyIframeApplicationWindow');
+  win.on('iframe:message', (context, payload) => {
+    const {type} = payload;
 
-      // Get path to iframe content
-      const src = proc.resource('/data/index.html');
+    switch (type) {
+    case 'ping':
+      console.log('IFrame says hello');
+      context.send({type: 'pong'});
+      break;
 
-      // Create DOM element
-      const iframe = createIframe(bus, proc, win, send => {
-        bus.on('yo', (send, args) => send({
-          method: 'yo',
-          args: ['MyIframeApplication says hello']
-        }));
-
-        // Send the process ID to our iframe to establish communication
-        send({
-          method: 'init',
-          args: [proc.pid]
-        });
+    case 'create-dialog':
+      core.make('osjs/dialog', 'alert', {message: 'IFrame dialog'}, (btn, value) => {
+        context.respond({btn, value});
       });
+      break;
 
-      // Finally set the source and attach
-      iframe.src = src;
+    default:
+      console.warn('Unknown iframe signal', payload);
+      break;
+    }
+  });
 
-      // Attach
-      $content.appendChild(iframe);
-    });
+  // Make sure application is destroyed when window closes
+  win.on('destroy', () => proc.destroy());
+
+  // Opens the window iframe to a spesified location
+  win.open(proc.resource('/data/index.html'));
 
   return proc;
 });
