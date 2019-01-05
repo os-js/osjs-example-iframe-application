@@ -27,9 +27,10 @@
  * @author  Anders Evenrud <andersevenrud@gmail.com>
  * @licence Simplified BSD License
  */
+import osjs from 'osjs';
 import {name as applicationName} from './metadata.json';
 
-OSjs.make('osjs/packages').register(applicationName, (core, args, options, metadata) => {
+osjs.register(applicationName, (core, args, options, metadata) => {
   // Create a new Application instance
   const proc = core.make('osjs/application', {args, options, metadata});
 
