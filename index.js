@@ -27,8 +27,30 @@
  * @author  Anders Evenrud <andersevenrud@gmail.com>
  * @licence Simplified BSD License
  */
+import osjs from 'osjs';
+import {name as applicationName} from './metadata.json';
 
-const createIframe = (bus, proc, win, cb) => {
+const createSimpleIframe = (core, proc) => ($content, win) => {
+  const iframe = document.createElement('iframe');
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.setAttribute('border', '0');
+
+  const src = proc.resource('/data/index.html');
+  iframe.src = src;
+
+  $content.appendChild(iframe);
+};
+
+const createIframe = (core, proc) => ($content, win) => {
+
+  // Create a new bus for our messaging
+  const bus = core.make('osjs/event-handler', 'MyIframeApplicationWindow');
+
+  // Get path to iframe content
+  const src = proc.resource('/data/index.html');
+
+  // Create DOM element
   const iframe = document.createElement('iframe');
   iframe.style.width = '100%';
   iframe.style.height = '100%';
@@ -51,15 +73,28 @@ const createIframe = (bus, proc, win, cb) => {
       bus.emit(data.method, sendMessage, ...data.args);
     });
 
-    cb(sendMessage);
+    bus.on('yo', (send, args) => sendMessage({
+      method: 'yo',
+      args: ['MyIframeApplication says hello']
+    }));
+
+    // Send the process ID to our iframe to establish communication
+    sendMessage({
+      method: 'init',
+      args: [proc.pid]
+    });
   });
 
-  return iframe;
+  // Finally set the source and attach
+  iframe.src = src;
+
+  // Attach
+  $content.appendChild(iframe);
 };
 
 // Creates the internal callback function when OS.js launches an application
 // Note the first argument is the 'name' taken from your metadata.json file
-OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options, metadata) => {
+const register = (core, args, options, metadata) => {
 
   // Create a new Application instance
   const proc = core.make('osjs/application', {
@@ -76,33 +111,14 @@ OSjs.make('osjs/packages').register('MyIframeApplication', (core, args, options,
     position: {left: 700, top: 200}
   })
     .on('destroy', () => proc.destroy())
-    .render(($content, win) => {
-      // Create a new bus for our messaging
-      const bus = core.make('osjs/event-handler', 'MyIframeApplicationWindow');
 
-      // Get path to iframe content
-      const src = proc.resource('/data/index.html');
+    // Create an iframe with messaging etc
+    .render(createIframe(core, proc));
 
-      // Create DOM element
-      const iframe = createIframe(bus, proc, win, send => {
-        bus.on('yo', (send, args) => send({
-          method: 'yo',
-          args: ['MyIframeApplication says hello']
-        }));
-
-        // Send the process ID to our iframe to establish communication
-        send({
-          method: 'init',
-          args: [proc.pid]
-        });
-      });
-
-      // Finally set the source and attach
-      iframe.src = src;
-
-      // Attach
-      $content.appendChild(iframe);
-    });
+  // Or just a simple standard iframe
+  // .render(createIframe(core, proc));
 
   return proc;
-});
+};
+
+osjs.register(applicationName, register);

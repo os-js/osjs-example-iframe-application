@@ -12,6 +12,9 @@ module.exports = {
   optimization: {
     minimize,
   },
+  externals: {
+    osjs: 'OSjs'
+  },
   plugins: [
     new CopyWebpackPlugin([
       {from: 'data', to: 'data'}
