@@ -42,5 +42,23 @@
   "homepage": "https://github.com/os-js/osjs-example-iframe-application#readme",
   "osjs": {
     "type": "package"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true
+    },
+    "parserOptions": {
+      "sourceType": "module"
+    },
+    "extends": "@osjs/eslint-config"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "plugins": [
+      "@babel/plugin-transform-runtime"
+    ]
   }
 }
