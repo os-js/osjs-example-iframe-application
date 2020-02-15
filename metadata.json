@@ -3,11 +3,13 @@
   "category": null,
   "title": {
     "en_EN": "My Iframe Application",
-    "fr_FR": "Mon application Iframe"
+    "fr_FR": "Mon application Iframe",
+    "pt_BR": "Meu aplicativo Iframe"
   },
   "description": {
     "en_EN": "My Iframe Application",
-    "fr_FR": "Mon application Iframe"
+    "fr_FR": "Mon application Iframe",
+    "pt_BR": "Meu aplicativo Iframe"
   },
   "files": [
     "main.js"
