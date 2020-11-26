@@ -16,9 +16,11 @@ module.exports = {
     osjs: 'OSjs'
   },
   plugins: [
-    new CopyWebpackPlugin([
-      {from: 'data', to: 'data'}
-    ])
+    new CopyWebpackPlugin({
+      patterns: [
+        {from: 'data', to: 'data'}
+      ]
+    })
   ],
   module: {
     rules: [
