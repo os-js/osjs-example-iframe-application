@@ -1,6 +1,7 @@
 {
   "name": "MyIframeApplication",
   "category": null,
+  "icon": "icon.png",
   "title": {
     "en_EN": "My Iframe Application",
     "fr_FR": "Mon application Iframe"

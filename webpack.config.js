@@ -18,7 +18,8 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        {from: 'data', to: 'data'}
+        {from: 'data', to: 'data'},
+        'icon.png'
       ]
     })
   ],
