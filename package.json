@@ -1,6 +1,6 @@
 {
   "name": "@osjs/example-iframe-application",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "OS.js Example IFrame Application",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
